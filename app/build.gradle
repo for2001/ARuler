@@ -8,7 +8,7 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
     defaultConfig {
-        applicationId "com.shibuiwilliam.arcoremeasurement"
+        applicationId "com.ruler.arcoremeasurement"
         minSdkVersion 25
         targetSdkVersion 29
         versionCode 1
@@ -36,8 +36,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.14.0'
-    implementation 'com.google.ar.sceneform:core:1.14.0'
-    implementation 'com.google.ar:core:1.14.0'
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.15.0'
+    implementation 'com.google.ar.sceneform:core:1.15.0'
+    implementation 'com.google.ar:core:1.15.0'
     implementation"org.jetbrains.anko:anko-common:$anko_version"
 }
