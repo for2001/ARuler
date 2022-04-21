@@ -71,6 +71,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
         configureSpinner()
         // init()
         clearButton()
+        confirmButton()
 
         arFragment!!.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane?, motionEvent: MotionEvent? ->
             // Creating Anchor.
@@ -110,7 +111,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 val trackable = hit.trackable
                 if (trackable is Plane && trackable.isPoseInPolygon(hit.hitPose)) {
                     val secondAnchorNode = AnchorNode(hit.createAnchor());
-                    val newSecond = Vector3(secondAnchorNode.worldPosition.x, placedAnchorNodes[0].worldPosition.y,
+                    val newSecond = Vector3(secondAnchorNode.worldPosition.x, secondAnchorNode.worldPosition.y,
                         secondAnchorNode.worldPosition.z)
 
                     drawRays(placedAnchorNodes[0], newSecond)
@@ -141,6 +142,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                     Vector3.zero(),
                     material
                 )
+
                 val lineNode = Node().apply {
                     setParent(firstAnchorNode)
                     renderable = lineMode
@@ -153,6 +155,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 }
                 lineNodeArray.add(lineNode)
 
+                /*
                 ViewRenderable.builder()
                     .setView(this, R.layout.renderable_text)
                     .build()
@@ -161,15 +164,17 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                         //render_text.text = "${String.format("%.1f", length * 100)}CM"
                         (it.view as TextView).text = "${String.format("%.1f", length * 100)}CM"
                         it.isShadowCaster = false
-                        val FaceNode = FaceToCameraNode().apply {
-                            setParent(lineNode)
-                            localRotation = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
-                            localPosition = Vector3(0f, 0.02f, 0f)
-                            renderable = it
-                        }
-                        faceNodeArray.add(FaceNode)
                     }
 
+                val FaceNode = FaceToCameraNode().apply {
+                    setParent(lineNode)
+                    localRotation = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
+                    localPosition = Vector3(0f, 0.02f, 0f)
+                    renderable = distanceCardViewRenderable
+                }
+                faceNodeArray.add(FaceNode)
+
+                 */
             }
         distance_view.text = "%.1f".format(length * 100) + " cm"
     }
@@ -277,6 +282,11 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
         })
     }
 
+    private fun confirmButton() {
+        val th = this
+        Confirmbutton.setOnClickListener { arFragment!!.arSceneView.scene.removeOnUpdateListener(th) }
+    }
+
     private fun placeAnchor(hitResult: HitResult) {
         val anchor = hitResult.createAnchor()
         placedAnchors.add(anchor)
@@ -337,7 +347,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
         val rotationFromAToB = Quaternion.lookRotation(directionFromTopToBottom, Vector3.up())
         // val rotationFromAToB = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
 
-        MaterialFactory.makeTransparentWithColor(
+        MaterialFactory.makeOpaqueWithColor(
             this,
             com.google.ar.sceneform.rendering.Color(0.33f, 0.87f, 0f)
         )
@@ -368,15 +378,16 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                         //render_text.text = "${String.format("%.1f", length * 100)}CM"
                         (it.view as TextView).text = "${String.format("%.1f", length * 100)}CM"
                         it.isShadowCaster = false
-                        val FaceNode = FaceToCameraNode().apply {
-                            setParent(lineNode)
-                            localRotation = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
-                            // localRotation = worldRotation
-                            localPosition = Vector3(0.02f, 0.02f, 0.02f)
-                            renderable = it
-                        }
-                        faceNodeArray.add(FaceNode)
                     }
+
+                val FaceNode = FaceToCameraNode().apply {
+                    setParent(lineNode)
+                    localRotation = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
+                    // localRotation = worldRotation
+                    localPosition = Vector3(0.02f, 0.02f, 0.02f)
+                    renderable = distanceCardViewRenderable
+                }
+                faceNodeArray.add(FaceNode)
             }
 
         distance_view.text = "%.1f".format(length * 100) + " cm"
@@ -404,6 +415,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
             }
             distanceModeArrayList[2] -> {
                 measureHeightOf2Points()
+                Log.i(TAG, "onUpdate被调用")
             }
             else -> {
                 measureDistanceFromCamera()
@@ -423,30 +435,23 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
             if (trackable is Plane && trackable.isPoseInPolygon(hit.hitPose)) {
                 val secondAnchorNode = AnchorNode(hit.createAnchor())
 
-                if (placedAnchorNodes.isNotEmpty() && lineNodeArray.isNotEmpty() && faceNodeArray.isNotEmpty()) {
-                    Log.i(TAG, "${placedAnchorNodes[0].worldPosition}")
-                    Log.i(TAG, "Before: ${secondAnchorNode.worldPosition}")
+                if (placedAnchorNodes.isNotEmpty() && lineNodeArray.isNotEmpty()) {
 
-                    val newSecond = Vector3(secondAnchorNode.worldPosition.x, placedAnchorNodes[0].worldPosition.y,
+                    val newSecond = Vector3(secondAnchorNode.worldPosition.x, secondAnchorNode.worldPosition.y,
                         secondAnchorNode.worldPosition.z)
-                    Log.i(TAG, "After: ${newSecond}")
 
                     val tmp = placedAnchorNodes[0]
+
                     lineNodeArray[0].setParent(null)
                     lineNodeArray[0].isEnabled = false
-                    val FaceNode = faceNodeArray[0]
-                    FaceNode.setParent(null)
-                    FaceNode.isEnabled = false
 
                     clearAllAnchors()
+
                     placeAnchor_copy(tmp)
                     drawRays(placedAnchorNodes[0], newSecond)
 
-                    val pose = frame.camera.pose
-                    val cameraPose = Vector3(pose.tx(), pose.ty(), pose.tz())
-                    Log.i(TAG, "座标点： ${placedAnchorNodes[0].worldPosition}")
-                    Log.i(TAG, "更新两点距离重新渲染 屏幕中心:$newSecond 相机：$cameraPose")
                 }
+
                 break
             }
         }
@@ -476,7 +481,6 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 dialog.show()
                 return@exceptionally null
             }
-        arFragment!!.arSceneView.scene.addOnUpdateListener(this)
     }
 
     private fun measureDistanceOf2Points() {
@@ -527,3 +531,4 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
     }
 
 }
+
