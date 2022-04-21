@@ -7,6 +7,35 @@
     android:background="@color/colorPrimary"
     tools:context=".ArcoreMeasurement">
 
+    <Button
+        android:id="@+id/clearButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        android:background="#18489B"
+        android:fontFamily="sans-serif-thin"
+        android:text="@string/clear"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/Confirmbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/confirm"
+        android:layout_weight="0.5"
+        android:background="#18489B"
+        android:fontFamily="sans-serif-thin"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -23,8 +52,8 @@
             android:id="@+id/distance_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.5"
             android:layout_gravity="bottom"
+            android:layout_weight="0.5"
             android:gravity="center"
             android:padding="8dp"
             android:textColor="@android:color/white"
@@ -36,18 +65,6 @@
             android:layout_height="48dp"
             android:layout_weight="0.5"
             android:spinnerMode="dialog" />
-
-        <Button
-            android:id="@+id/clearButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:background="#18489B"
-            android:fontFamily="sans-serif-thin"
-            android:text="@string/clear"
-            android:textAlignment="center"
-            android:textColor="@android:color/white"
-            android:textSize="14sp" />
 
     </LinearLayout>
 
