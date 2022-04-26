@@ -25,6 +25,7 @@ import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import kotlinx.android.synthetic.main.activity_measurement.*
 import java.util.*
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -44,6 +45,11 @@ private val lineNodeArray = arrayListOf<Node>()
 private var distanceCardViewRenderable: ViewRenderable? = null
 private var render: TextView? = null
 private val faceNodeArray = arrayListOf<Node>()
+private var layout = listOf<Int>(R.layout.renderable_text, R.layout.point_text_layout,
+    R.layout.renderable_text1, R.layout.renderable_text2)
+private var view : Int = 0
+
+
 
 class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,10 +70,11 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
             distanceModeArrayList.add(it)
         }
 
+
         // arFragment = supportFragmentManager.findFragmentById(R.id.sceneform_fragment) as ArFragment?
         arFragment = sceneform_fragment as ArFragment
         // distanceModeTextView = findViewById(R.id.distance_view)
-        render = findViewById(R.id.render_text)
+        render = findViewById(R.id.render_text2)
         configureSpinner()
         // init()
         clearButton()
@@ -87,6 +94,9 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 distanceModeArrayList[2] -> {
                     tapHeightOf2Points(hitResult)
                 }
+                distanceModeArrayList[3] -> {
+                    tapAreaOfMultiPoints(hitResult)
+                }
                 else -> {
                     clearAllAnchors()
                     placeAnchor(hitResult)
@@ -94,6 +104,52 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
             }
         }
     }
+
+    private fun tapAreaOfMultiPoints(hitResult: HitResult) {
+        placeAnchor(hitResult)
+    }
+
+    private fun drawArea() {
+        for (i in placedAnchorNodes.indices) {
+            when (i) {
+                placedAnchorNodes.size-1 -> {
+                    drawLine(placedAnchorNodes[i], placedAnchorNodes[0]);
+                }
+                else -> {
+                    drawLine(placedAnchorNodes[i], placedAnchorNodes[i+1]);
+                }
+            }
+        }
+
+        calArea()
+    }
+
+    class Vector2(tx: Float, ty: Float){
+        var x : Float = tx
+        var y : Float = ty
+    }
+
+    private fun calArea() {
+        val list = arrayListOf<Vector2>()
+        for (node in placedAnchorNodes) {
+            val vector = Vector2(node.worldPosition.x, node.worldPosition.z)
+            list.add(vector)
+        }
+
+        val n = list.size
+        var i = 1
+        var sum = 0.0
+
+        while (i < n) {
+            sum += list[i].y * (list[i].x - list[(i+1)%n].x)
+            i++
+        }
+
+        sum = abs(sum / 2.0)
+
+        distance_view.text = "%.4f".format(sum * 10000) + " cm2"
+    }
+
 
     private fun tapHeightOf2Points(hitResult: HitResult) {
         if (placedAnchorNodes.size == 0) {
@@ -227,6 +283,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 clearAllAnchors()
                 setMode()
                 toastMode()
+                confirmButton()
                 Log.i(TAG, "Selected arcore focus on ${distanceMode}")
             }
 
@@ -264,6 +321,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 distanceModeArrayList[0] -> "Find plane and tap somewhere"
                 distanceModeArrayList[1] -> "Find plane and tap 2 points"
                 distanceModeArrayList[2] -> "Find plane and tap 1 points"
+                distanceModeArrayList[3] -> "Find plane and tap multi points"
                 else -> "???"
             },
             Toast.LENGTH_SHORT
@@ -283,9 +341,20 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
     }
 
     private fun confirmButton() {
-        val th = this
-        Confirmbutton.setOnClickListener { arFragment!!.arSceneView.scene.removeOnUpdateListener(th) }
+        when (distanceMode) {
+            distanceModeArrayList[2] -> {
+                val th = this
+                Confirmbutton.setOnClickListener { arFragment!!.arSceneView.scene.removeOnUpdateListener(th) }
+            }
+            distanceModeArrayList[3] -> {
+                Confirmbutton.setOnClickListener { drawArea() }
+            }
+            else -> {
+                clearAllAnchors()
+            }
+        }
     }
+
 
     private fun placeAnchor(hitResult: HitResult) {
         val anchor = hitResult.createAnchor()
@@ -316,7 +385,9 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 return@exceptionally null
             }
 
-        arFragment!!.arSceneView.scene.addOnUpdateListener(this)
+        if (distanceMode != distanceModeArrayList[3]) {
+            arFragment!!.arSceneView.scene.addOnUpdateListener(this)
+        }
     }
 
     private fun tapDistanceOf2Points(hitResult: HitResult) {
@@ -347,6 +418,8 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
         val rotationFromAToB = Quaternion.lookRotation(directionFromTopToBottom, Vector3.up())
         // val rotationFromAToB = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
 
+        // var distanceView : ViewRenderable ?= null
+
         MaterialFactory.makeOpaqueWithColor(
             this,
             com.google.ar.sceneform.rendering.Color(0.33f, 0.87f, 0f)
@@ -370,24 +443,41 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 }
                 lineNodeArray.add(lineNode)
 
+                var distanceView : ViewRenderable ?= null
+
+                if (layout.isNotEmpty()) {
+                    view = layout.first()
+                    layout = layout.subList(1, layout.size)
+                }
+
                 ViewRenderable.builder()
                     .setView(this, R.layout.renderable_text)
                     .build()
                     .thenAccept { it ->
                         distanceCardViewRenderable = it
+                        (distanceCardViewRenderable!!.view as TextView).text = "${String.format("%.1f", length * 100)}CM"
                         //render_text.text = "${String.format("%.1f", length * 100)}CM"
-                        (it.view as TextView).text = "${String.format("%.1f", length * 100)}CM"
                         it.isShadowCaster = false
+
+
+                        distanceView = distanceCardViewRenderable
+
+                        if (distanceView != null) {
+                            Log.i(TAG, "${distanceView!!.view}")
+                        }
+                        Log.i(TAG, "${(distanceView!!.view as TextView).text}")
+                        Log.i(TAG, "俩点距离： ${length*100}cm")
+
+                        val FaceNode = FaceToCameraNode().apply {
+                            setParent(lineNode)
+                            localRotation = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
+                            // localRotation = worldRotation
+                            localPosition = Vector3(0.05f, 0.05f, 0.05f)
+                            renderable = distanceView
+                        }
+                        faceNodeArray.add(FaceNode)
                     }
 
-                val FaceNode = FaceToCameraNode().apply {
-                    setParent(lineNode)
-                    localRotation = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
-                    // localRotation = worldRotation
-                    localPosition = Vector3(0.02f, 0.02f, 0.02f)
-                    renderable = distanceCardViewRenderable
-                }
-                faceNodeArray.add(FaceNode)
             }
 
         distance_view.text = "%.1f".format(length * 100) + " cm"

@@ -4,6 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Git_path/ARuler/app/src/main/res/layout/activity_measurement.xml" value="0.176" />
+        <entry key="..\:/Git_path/ARuler/app/src/main/res/layout/distance_text_layout.xml" value="0.1421875" />
+        <entry key="..\:/Git_path/ARuler/app/src/main/res/layout/point_text_layout.xml" value="0.1421875" />
+        <entry key="..\:/Git_path/ARuler/app/src/main/res/layout/renderable_text.xml" value="0.16354166666666667" />
         <entry key="..\:/Git_path/arcore-measurement/app/src/main/res/layout/activity_arcore_measurement.xml" value="0.2" />
         <entry key="..\:/Git_path/arcore-measurement/app/src/main/res/layout/activity_measurement.xml" value="0.264" />
         <entry key="..\:/Git_path/arcore-measurement/app/src/main/res/layout/distance_text_layout.xml" value="0.1" />

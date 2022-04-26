@@ -7,6 +7,7 @@
     <string name="distance_from_camera">Distance from camera</string>
     <string name="distance_of_2_points">Distance of 2 points</string>
     <string name="height_of_2_points">Height of 2 points</string>
+    <string name="area_of_multi_points">Area of Multi points</string>
     <string name="clear">Clear</string>
     <string name="initCM">0.0</string>
     <string name="textview">TextView</string>
@@ -15,5 +16,6 @@
         <item>@string/distance_from_camera</item>
         <item>@string/distance_of_2_points</item>
         <item>@string/height_of_2_points</item>
+        <item>@string/area_of_multi_points</item>
     </string-array>
 </resources>
