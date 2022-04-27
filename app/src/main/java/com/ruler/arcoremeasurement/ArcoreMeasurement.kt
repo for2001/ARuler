@@ -133,20 +133,22 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
         val list = arrayListOf<Vector2>()
         for (node in placedAnchorNodes) {
             val vector = Vector2(node.worldPosition.x, node.worldPosition.z)
+            Log.i(TAG, "点 （${node.worldPosition.x}, ${node.worldPosition.z}）")
             list.add(vector)
         }
 
         val n = list.size
-        var i = 1
+        var i = 0
         var sum = 0.0
 
         while (i < n) {
-            sum += list[i].y * (list[i].x - list[(i+1)%n].x)
+            sum += list[i].x * list[(i+1)%n].y - list[(i+1)%n].x * list[i].y
             i++
         }
 
         sum = abs(sum / 2.0)
 
+        Log.i(TAG, "面积：${sum*10000} cm2")
         distance_view.text = "%.4f".format(sum * 10000) + " cm2"
     }
 
@@ -211,26 +213,6 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 }
                 lineNodeArray.add(lineNode)
 
-                /*
-                ViewRenderable.builder()
-                    .setView(this, R.layout.renderable_text)
-                    .build()
-                    .thenAccept { it ->
-                        distanceCardViewRenderable = it
-                        //render_text.text = "${String.format("%.1f", length * 100)}CM"
-                        (it.view as TextView).text = "${String.format("%.1f", length * 100)}CM"
-                        it.isShadowCaster = false
-                    }
-
-                val FaceNode = FaceToCameraNode().apply {
-                    setParent(lineNode)
-                    localRotation = Quaternion.axisAngle(Vector3(0f, 1f, 0f), 90f)
-                    localPosition = Vector3(0f, 0.02f, 0f)
-                    renderable = distanceCardViewRenderable
-                }
-                faceNodeArray.add(FaceNode)
-
-                 */
             }
         distance_view.text = "%.1f".format(length * 100) + " cm"
     }
@@ -443,7 +425,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                 }
                 lineNodeArray.add(lineNode)
 
-                var distanceView : ViewRenderable ?= null
+                var distanceView: ViewRenderable?
 
                 if (layout.isNotEmpty()) {
                     view = layout.first()
@@ -455,7 +437,13 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                     .build()
                     .thenAccept { it ->
                         distanceCardViewRenderable = it
-                        (distanceCardViewRenderable!!.view as TextView).text = "${String.format("%.1f", length * 100)}CM"
+                        var len = length
+                        if (distanceMode == distanceModeArrayList[3]) {
+                            len = sqrt((firstWorldPosition.x - secondWorldPosition.x).pow(2) +
+                                    (firstWorldPosition.z - secondWorldPosition.z).pow(2))
+                        }
+
+                        (distanceCardViewRenderable!!.view as TextView).text = "${String.format("%.1f", len * 100)}CM"
                         //render_text.text = "${String.format("%.1f", length * 100)}CM"
                         it.isShadowCaster = false
 
@@ -467,6 +455,7 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
                         }
                         Log.i(TAG, "${(distanceView!!.view as TextView).text}")
                         Log.i(TAG, "俩点距离： ${length*100}cm")
+                        Log.i(TAG, "平面距离：${len*100} cm")
 
                         val FaceNode = FaceToCameraNode().apply {
                             setParent(lineNode)
@@ -480,7 +469,9 @@ class ArcoreMeasurement : AppCompatActivity(), Scene.OnUpdateListener {
 
             }
 
-        distance_view.text = "%.1f".format(length * 100) + " cm"
+        if (distanceMode != distanceModeArrayList[3]) {
+            distance_view.text = "%.1f".format(length * 100) + " cm"
+        }
     }
 
     class FaceToCameraNode : Node() {
